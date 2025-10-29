@@ -1,52 +1,14 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
 
-interface Cell {
-  id: number;
-  owned: boolean;
-  selected: boolean;
-  color: string;
-}
-
-const GRID_WIDTH = 160;
-const GRID_HEIGHT = 100;
-const TOTAL_CELLS = GRID_WIDTH * GRID_HEIGHT;
-
-const generateRandomColor = () => {
-  const colors = [
-    '#F97316', '#0EA5E9', '#10b981', '#8B5CF6', '#D946EF',
-    '#ea384c', '#FEC6A1', '#E5DEFF', '#FFDEE2', '#D3E4FD'
-  ];
-  return colors[Math.floor(Math.random() * colors.length)];
-};
-
 const Index = () => {
-  const [cells] = useState<Cell[]>(() => 
-    Array.from({ length: TOTAL_CELLS }, (_, i) => ({
-      id: i,
-      owned: Math.random() > 0.999,
-      selected: false,
-      color: generateRandomColor()
-    }))
-  );
-
-  const [selectedCells, setSelectedCells] = useState<number[]>([]);
+  const [selectedCells, setSelectedCells] = useState<number>(0);
   const [isMetaMaskConnected, setIsMetaMaskConnected] = useState(false);
   const [currentLog, setCurrentLog] = useState('💡 Кликните по своей (тёмно-зелёной) ячейке — появится окно загрузки.');
 
-  const soldCount = cells.filter(c => c.owned).length;
-
-  const handleCellClick = (cellId: number) => {
-    setSelectedCells(prev => {
-      if (prev.includes(cellId)) {
-        return prev.filter(id => id !== cellId);
-      } else {
-        return [...prev, cellId];
-      }
-    });
-  };
+  const soldCount = 18;
+  const totalCells = 16000;
 
   const handleMetaMaskConnect = () => {
     setIsMetaMaskConnected(!isMetaMaskConnected);
@@ -57,7 +19,7 @@ const Index = () => {
   };
 
   const handleBuySelected = () => {
-    if (selectedCells.length === 0) {
+    if (selectedCells === 0) {
       setCurrentLog('⚠️ Выберите хотя бы одну ячейку для покупки');
       return;
     }
@@ -65,114 +27,135 @@ const Index = () => {
       setCurrentLog('⚠️ Подключите MetaMask для покупки');
       return;
     }
-    setCurrentLog(`💰 Покупка ${selectedCells.length} ячеек... Ожидайте подтверждения транзакции`);
+    setCurrentLog(`💰 Покупка ${selectedCells} ячеек... Ожидайте подтверждения транзакции`);
   };
 
   const handleResetSelection = () => {
-    setSelectedCells([]);
+    setSelectedCells(0);
     setCurrentLog('🔄 Выбор сброшен');
   };
 
   return (
-    <div className="min-h-screen bg-[#1a1a1a] text-white p-4">
-      <div className="max-w-[1680px] mx-auto">
-        <header className="mb-6 border-2 border-[#333] bg-[#222] p-4 rounded-sm">
-          <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
-            <div className="flex items-center gap-3">
-              <div className="text-2xl font-bold text-[#F97316]">
-                🎨 PIXEL.NFT
+    <div className="min-h-screen bg-background text-foreground">
+      <div className="max-w-7xl mx-auto px-6 py-8">
+        <header className="backdrop-blur-xl bg-secondary/60 border border-border rounded-2xl p-8 shadow-2xl">
+          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 mb-8">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-accent to-accent/70 flex items-center justify-center shadow-lg">
+                <Icon name="Sparkles" size={24} className="text-white" />
               </div>
-              <div className="text-xs text-[#999] hidden md:block">
-                Million Dollar Homepage 2.0
+              <div>
+                <h1 className="text-3xl font-semibold tracking-tight">PIXEL.NFT</h1>
+                <p className="text-sm text-muted-foreground mt-0.5">Decentralized Pixel Marketplace</p>
               </div>
             </div>
 
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="flex flex-wrap items-center gap-3">
               <Button
                 onClick={handleMetaMaskConnect}
                 variant={isMetaMaskConnected ? "default" : "outline"}
-                size="sm"
-                className="font-mono text-xs"
+                size="lg"
+                className="font-medium gap-2 transition-all hover:scale-105"
               >
-                <Icon name={isMetaMaskConnected ? "CheckCircle2" : "Wallet"} size={14} className="mr-1" />
-                {isMetaMaskConnected ? 'MetaMask ✓' : 'Подключить MetaMask'}
+                <Icon name={isMetaMaskConnected ? "CheckCircle2" : "Wallet"} size={18} />
+                {isMetaMaskConnected ? 'Connected' : 'Connect MetaMask'}
               </Button>
-
-              <Badge variant="secondary" className="font-mono text-xs px-3 py-1">
-                Продано: {soldCount} / {TOTAL_CELLS}
-              </Badge>
-
-              <Badge 
-                variant={selectedCells.length > 0 ? "default" : "outline"} 
-                className="font-mono text-xs px-3 py-1"
-              >
-                Выбрано: {selectedCells.length}
-              </Badge>
 
               <Button
                 onClick={handleBuySelected}
-                disabled={selectedCells.length === 0 || !isMetaMaskConnected}
-                size="sm"
-                className="font-mono text-xs bg-[#10b981] hover:bg-[#059669]"
+                disabled={selectedCells === 0 || !isMetaMaskConnected}
+                size="lg"
+                className="font-medium gap-2 bg-accent hover:bg-accent/90 transition-all hover:scale-105 disabled:opacity-40"
               >
-                <Icon name="ShoppingCart" size={14} className="mr-1" />
-                Купить выбранные
+                <Icon name="ShoppingCart" size={18} />
+                Buy Selected
               </Button>
 
               <Button
                 onClick={handleResetSelection}
-                disabled={selectedCells.length === 0}
-                variant="outline"
-                size="sm"
-                className="font-mono text-xs"
+                disabled={selectedCells === 0}
+                variant="ghost"
+                size="lg"
+                className="font-medium gap-2 transition-all hover:scale-105"
               >
-                <Icon name="X" size={14} className="mr-1" />
-                Сбросить
+                <Icon name="RotateCcw" size={18} />
+                Reset
               </Button>
             </div>
           </div>
 
-          <div className="space-y-2">
-            <div className="bg-[#1a1a1a] border border-[#333] px-3 py-2 rounded-sm text-xs text-[#0EA5E9]">
-              {currentLog}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div className="bg-background/40 backdrop-blur-sm rounded-xl p-5 border border-border/50">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground mb-1">Total Sold</p>
+                  <p className="text-2xl font-semibold">{soldCount.toLocaleString()}</p>
+                </div>
+                <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center">
+                  <Icon name="TrendingUp" size={20} className="text-accent" />
+                </div>
+              </div>
+              <div className="mt-3 flex items-center gap-2">
+                <div className="flex-1 bg-background rounded-full h-2 overflow-hidden">
+                  <div 
+                    className="bg-gradient-to-r from-accent to-accent/70 h-full transition-all duration-500"
+                    style={{ width: `${(soldCount / totalCells) * 100}%` }}
+                  />
+                </div>
+                <span className="text-xs text-muted-foreground whitespace-nowrap">{totalCells.toLocaleString()}</span>
+              </div>
             </div>
-            <div className="bg-[#1a1a1a] border border-[#333] px-3 py-2 rounded-sm text-xs text-[#10b981]">
-              ✅ Изображения загружены. Подключите MetaMask для покупки и загрузки.
+
+            <div className="bg-background/40 backdrop-blur-sm rounded-xl p-5 border border-border/50">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground mb-1">Selected</p>
+                  <p className="text-2xl font-semibold">{selectedCells.toLocaleString()}</p>
+                </div>
+                <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center">
+                  <Icon name="MousePointerClick" size={20} className="text-accent" />
+                </div>
+              </div>
+              <p className="text-xs text-muted-foreground mt-3">Click cells to select</p>
+            </div>
+
+            <div className="bg-background/40 backdrop-blur-sm rounded-xl p-5 border border-border/50">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground mb-1">Price per Cell</p>
+                  <p className="text-2xl font-semibold">0.001 ETH</p>
+                </div>
+                <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center">
+                  <Icon name="Coins" size={20} className="text-accent" />
+                </div>
+              </div>
+              <p className="text-xs text-muted-foreground mt-3">≈ $2.50 USD</p>
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <div className="bg-accent/5 border border-accent/20 rounded-xl px-4 py-3.5 flex items-start gap-3">
+              <Icon name="Info" size={18} className="text-accent mt-0.5 flex-shrink-0" />
+              <p className="text-sm text-foreground/90 leading-relaxed">{currentLog}</p>
+            </div>
+            <div className="bg-accent/5 border border-accent/20 rounded-xl px-4 py-3.5 flex items-start gap-3">
+              <Icon name="CheckCircle2" size={18} className="text-accent mt-0.5 flex-shrink-0" />
+              <p className="text-sm text-foreground/90 leading-relaxed">✅ Изображения загружены. Подключите MetaMask для покупки и загрузки.</p>
             </div>
           </div>
         </header>
 
-        <main className="border-2 border-[#333] bg-[#111] p-2 rounded-sm">
-          <div 
-            className="grid gap-[1px] bg-[#000]"
-            style={{
-              gridTemplateColumns: `repeat(${GRID_WIDTH}, 10px)`,
-              gridTemplateRows: `repeat(${GRID_HEIGHT}, 10px)`,
-            }}
-          >
-            {cells.map((cell) => (
-              <div
-                key={cell.id}
-                onClick={() => handleCellClick(cell.id)}
-                className={`
-                  w-[10px] h-[10px] cursor-pointer transition-all duration-150
-                  ${cell.owned ? 'ring-1 ring-[#10b981]' : ''}
-                  ${selectedCells.includes(cell.id) ? 'ring-2 ring-[#F97316] scale-110' : ''}
-                  hover:scale-125 hover:z-10
-                `}
-                style={{
-                  backgroundColor: cell.owned ? '#10b981' : cell.color,
-                  opacity: selectedCells.includes(cell.id) ? 1 : 0.85,
-                }}
-                title={`Cell #${cell.id} ${cell.owned ? '(Продана)' : '(Доступна)'}`}
-              />
-            ))}
+        <main className="mt-8 backdrop-blur-xl bg-secondary/30 border border-border rounded-2xl p-12 shadow-2xl">
+          <div className="text-center py-24">
+            <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-accent/20 to-accent/10 flex items-center justify-center mx-auto mb-6">
+              <Icon name="Grid3x3" size={40} className="text-accent" />
+            </div>
+            <h2 className="text-2xl font-semibold mb-3">Pixel Grid Coming Soon</h2>
+            <p className="text-muted-foreground max-w-md mx-auto">
+              16,000 unique pixel cells ready for your NFT artwork. Click to select, connect wallet, and claim your space.
+            </p>
           </div>
         </main>
-
-        <footer className="mt-6 text-center text-xs text-[#666] font-mono">
-          <p>🚀 Decentralized Pixel Art Marketplace • Web3 Powered • Built on Blockchain</p>
-        </footer>
       </div>
     </div>
   );
